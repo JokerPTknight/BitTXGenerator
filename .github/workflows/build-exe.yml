@@ -1,0 +1,39 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [ main ]
+  release:
+    types: [ created ]
+
+jobs:
+  build:
+    name: Build C/C++ EXE
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up MinGW for C/C++ build
+        uses: egor-tensin/setup-mingw@v2
+        with:
+          platform: x64
+
+      - name: Compile Source Code
+        run: |
+          echo "Compiling BitTXGenerator..."
+          if exist main.cpp (
+            g++ main.cpp -o BitTXGenerator.exe -static
+          ) else (
+            for /R %%f in (*.cpp) do g++ "%%f" -o BitTXGenerator.exe -static
+          )
+
+      - name: Verify EXE
+        run: dir *.exe
+
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BitTXGenerator-Windows
+          path: BitTXGenerator.exe
